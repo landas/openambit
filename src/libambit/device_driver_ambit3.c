@@ -167,12 +167,29 @@ static float ieee754_to_float(uint32_t bits)
 
 static int personal_settings_get(ambit_object_t *object, ambit_personal_settings_t *settings)
 {
+    uint8_t *reply_data = NULL;
+    size_t replylen = 0;
     uint8_t send_data[4] = { 0x00, 0x00, 0x00, 0x00 };
+    uint8_t send_data_unknown[17] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
     libambit_sbem0102_data_t reply_data_object;
     uint32_t alarm_num;
     uint32_t decli_num;
 
     LOG_INFO("Reading personal settings");
+
+
+    switch (get_ambit3_fw_gen(&object->device_info)) {
+      case AMBIT3_FW_GEN3:
+            if (libambit_protocol_command(object, ambit_command_unknown3, send_data_unknown, sizeof(send_data_unknown), &reply_data, &replylen, 0) != 0 || replylen < 4) {
+                libambit_protocol_free(reply_data);
+                LOG_WARNING("Failed to ambit_command_unknown3");
+                return -1;
+            }
+            libambit_protocol_free(reply_data);
+      case AMBIT3_FW_GEN1:
+      case AMBIT3_FW_GEN2:
+        break;
+    }
 
     libambit_sbem0102_data_init(&reply_data_object);
     if (libambit_sbem0102_command_request_raw(&object->driver_data->sbem0102, ambit_command_ambit3_settings, send_data, sizeof(send_data), &reply_data_object) != 0) {
