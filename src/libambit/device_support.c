@@ -23,6 +23,7 @@
 #include "device_driver.h"
 
 #include <string.h>
+#include <stdio.h>
 
 /*
  * Local definitions
@@ -102,6 +103,7 @@ const uint8_t *libambit_device_komposti(uint16_t vendor_id, uint16_t product_id,
         if(vendor_id == known_devices[i].vid &&
             product_id == known_devices[i].pid) {
                 if(next == 0) {
+                    printf("libambit_komposti: %x %x %x %x\n", known_devices[i].public_info.komposti_version[0], known_devices[i].public_info.komposti_version[1], known_devices[i].public_info.komposti_version[2], known_devices[i].public_info.komposti_version[3]);
                     return known_devices[i].public_info.komposti_version;
                 } else {
                     --next;
