@@ -42,6 +42,7 @@
 enum ambit3_fw_gen {
     AMBIT3_FW_GEN1,
     AMBIT3_FW_GEN2,
+    AMBIT3_FW_GEN3,
 };
 
 typedef struct memory_map_entry_s {
@@ -114,6 +115,7 @@ static enum ambit3_fw_gen get_ambit3_fw_gen(ambit_device_info_t *device_info)
         uint8_t fw_version[4];
         enum ambit3_fw_gen gen;
     } generations[] = {
+        {{2, 4, 1, 0}, AMBIT3_FW_GEN3},
         {{2, 0, 4, 0}, AMBIT3_FW_GEN2},
         {{0, 0, 0, 0}, AMBIT3_FW_GEN1},
     };
@@ -436,6 +438,7 @@ static int log_read(ambit_object_t *object, ambit_log_skip_cb skip_cb, ambit_log
         init_log_read_send_data_object_gen1(&send_data_object);
         break;
       case AMBIT3_FW_GEN2:
+      case AMBIT3_FW_GEN3:
         init_log_read_send_data_object_gen2(&send_data_object);
         break;
     }
@@ -459,6 +462,7 @@ static int log_read(ambit_object_t *object, ambit_log_skip_cb skip_cb, ambit_log
         entries_read = process_log_read_replies_gen1(object, &reply_data_object, skip_cb, push_cb, progress_cb, userref);
         break;
       case AMBIT3_FW_GEN2:
+      case AMBIT3_FW_GEN3:
         entries_read = process_log_read_replies_gen2(object, &reply_data_object, skip_cb, push_cb, progress_cb, userref);
         break;
     }
@@ -622,6 +626,7 @@ static int get_memory_maps(ambit_object_t *object)
         legacy_format = 2;
         break;
       case AMBIT3_FW_GEN2:
+      case AMBIT3_FW_GEN3:
         legacy_format = 3;
         break;
     }
@@ -644,6 +649,9 @@ static int get_memory_maps(ambit_object_t *object)
         break;
       case AMBIT3_FW_GEN2:
         mm_entry_data_id = 0x4b;
+        break;
+      case AMBIT3_FW_GEN3:
+        mm_entry_data_id = 0x4a;
         break;
     }
     while (libambit_sbem0102_data_next(&reply_data_object) == 0) {
