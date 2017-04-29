@@ -484,8 +484,13 @@ static int log_read(ambit_object_t *object, ambit_log_skip_cb skip_cb, ambit_log
         break;
     }
 
+    printf("Finished reading logs... I think...\n");
+
     libambit_sbem0102_data_free(&send_data_object);
+    printf("Finished freeing data 1\n");
     libambit_sbem0102_data_free(&reply_data_object);
+
+    printf("Finished freeing data 2\n");
 
     return entries_read;
 }
