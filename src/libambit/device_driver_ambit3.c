@@ -413,9 +413,11 @@ static int process_log_read_replies_gen2(ambit_object_t *object, libambit_sbem01
                                                                        log_header.address2,
                                                                        log_header.end_address2 - log_header.address2,
                                                                        LIBAMBIT_PMEM20_FLAGS_UNKNOWN2_PADDING_48);
+                    LOG_INFO("Completed data of log %d of %d", log_entries_walked + 1, log_entries_total);
                     if (log_entry != NULL) {
                         if (push_cb != NULL) {
                             push_cb(userref, log_entry);
+                            LOG_INFO("Completed push_cb");
                         }
                         entries_read++;
                     }
@@ -429,6 +431,7 @@ static int process_log_read_replies_gen2(ambit_object_t *object, libambit_sbem01
             }
             log_entries_walked++;
             if (progress_cb != NULL) {
+                LOG_INFO("Do progress_cb");
                 progress_cb(userref, log_entries_total, log_entries_walked, 100*log_entries_walked/log_entries_total);
             }
             break;
