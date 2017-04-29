@@ -170,7 +170,7 @@ static int personal_settings_get(ambit_object_t *object, ambit_personal_settings
     uint8_t *reply_data = NULL;
     size_t replylen = 0;
     uint8_t send_data[4] = { 0x00, 0x00, 0x00, 0x00 };
-    uint8_t send_data_unknown[17] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
+    uint8_t send_data_unknown[17] = { 0x60,0x00,0x00,0x00,0xb0,0x00,0x17,0x00,0x01,0x00,0x00,0x00,0xc0,0xf5,0xdc,0x0a,0xb0 };
     libambit_sbem0102_data_t reply_data_object;
     uint32_t alarm_num;
     uint32_t decli_num;
