@@ -643,18 +643,20 @@ static int get_memory_maps(ambit_object_t *object)
         legacy_format = 2;
         break;
       case AMBIT3_FW_GEN2:
-      case AMBIT3_FW_GEN3:
         legacy_format = 3;
         break;
+      case AMBIT3_FW_GEN3:
+        legacy_format = 0;
+        break;
     }
-    /*
+
     if (libambit_protocol_command(object, ambit_command_waypoint_count, NULL, 0, &reply_data, &replylen, legacy_format) != 0 || replylen < 4) {
         libambit_protocol_free(reply_data);
         LOG_WARNING("Failed to read memory map key");
         return -1;
     }
     libambit_protocol_free(reply_data);
-    */
+
     libambit_sbem0102_data_init(&reply_data_object);
     if (libambit_sbem0102_command_request_raw(&object->driver_data->sbem0102, ambit_command_ambit3_memory_map, send_data, sizeof(send_data), &reply_data_object) != 0) {
         LOG_WARNING("Failed to read memory map");
