@@ -406,6 +406,7 @@ static int process_log_read_replies_gen2(ambit_object_t *object, libambit_sbem01
             break;
           case 0x8a:
           case 0x7a:
+          case 0xe1:
             if (parse_log_header(reply_data_object, &log_header, fw_gen) == 0) {
                 LOG_INFO("Log header parsed successfully");
                 if (!skip_cb || skip_cb(userref, &log_header.header) != 0) {
