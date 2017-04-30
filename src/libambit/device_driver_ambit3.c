@@ -39,12 +39,6 @@
  * Local definitions
  */
 
-enum ambit3_fw_gen {
-    AMBIT3_FW_GEN1,
-    AMBIT3_FW_GEN2,
-    AMBIT3_FW_GEN3,
-};
-
 typedef struct memory_map_entry_s {
     uint32_t start;
     uint32_t size;
@@ -87,7 +81,7 @@ static int log_read(ambit_object_t *object, ambit_log_skip_cb skip_cb, ambit_log
 static int gps_orbit_header_read(ambit_object_t *object, uint8_t data[8]);
 static int gps_orbit_write(ambit_object_t *object, uint8_t *data, size_t datalen);
 
-static int parse_log_header(libambit_sbem0102_data_t *reply_data_object, ambit3_log_header_t *log_header);
+static int parse_log_header(libambit_sbem0102_data_t *reply_data_object, ambit3_log_header_t *log_header, enum ambit3_fw_gen fw_gen);
 static int get_memory_maps(ambit_object_t *object);
 
 /*
@@ -167,10 +161,10 @@ static float ieee754_to_float(uint32_t bits)
 
 static int personal_settings_get(ambit_object_t *object, ambit_personal_settings_t *settings)
 {
-    uint8_t *reply_data = NULL;
-    size_t replylen = 0;
+    //uint8_t *reply_data = NULL;
+    //size_t replylen = 0;
     uint8_t send_data[4] = { 0x00, 0x00, 0x00, 0x00 };
-    uint8_t send_data_unknown[17] = { 0x60,0x00,0x00,0x00,0xb0,0x00,0x17,0x00,0x01,0x00,0x00,0x00,0xc0,0xf5,0xdc,0x0a,0xb0 };
+    //uint8_t send_data_unknown[17] = { 0x60,0x00,0x00,0x00,0xb0,0x00,0x17,0x00,0x01,0x00,0x00,0x00,0xc0,0xf5,0xdc,0x0a,0xb0 };
     libambit_sbem0102_data_t reply_data_object;
     uint32_t alarm_num;
     uint32_t decli_num;
@@ -200,7 +194,7 @@ static int personal_settings_get(ambit_object_t *object, ambit_personal_settings
 
     memset(settings, 0, sizeof(ambit_personal_settings_t));
 
-    while (libambit_sbem0102_data_next(&reply_data_object) == 0) {
+    while (libambit_sbem0102_data_next(&reply_data_object, AMBIT3_FW_GEN1) == 0) {
         switch (libambit_sbem0102_data_id(&reply_data_object)) {
           case 0x01:
             settings->date_format = libambit_sbem0102_data_ptr(&reply_data_object)[0];
@@ -331,7 +325,7 @@ static int process_log_read_replies_gen1(ambit_object_t *object, libambit_sbem01
 
     log_header.header.activity_name = NULL;
 
-    while (libambit_sbem0102_data_next(reply_data_object) == 0) {
+    while (libambit_sbem0102_data_next(reply_data_object, AMBIT3_FW_GEN1) == 0) {
         switch (libambit_sbem0102_data_id(reply_data_object)) {
           case 0x4e:
             log_entries_total = read16(libambit_sbem0102_data_ptr(reply_data_object), 0);
@@ -342,7 +336,7 @@ static int process_log_read_replies_gen1(ambit_object_t *object, libambit_sbem01
             LOG_INFO("Number of logs marked as not synchronized=%d", log_entries_notsynced);
             break;
           case 0x7e:
-            if (parse_log_header(reply_data_object, &log_header) == 0) {
+            if (parse_log_header(reply_data_object, &log_header, AMBIT3_FW_GEN1) == 0) {
                 LOG_INFO("Log header parsed successfully");
                 if (!skip_cb || skip_cb(userref, &log_header.header) != 0) {
                     LOG_INFO("Reading data of log %d of %d", log_entries_walked + 1, log_entries_total);
@@ -379,7 +373,7 @@ static int process_log_read_replies_gen1(ambit_object_t *object, libambit_sbem01
 }
 
 static int process_log_read_replies_gen2(ambit_object_t *object, libambit_sbem0102_data_t *reply_data_object,
-                                         ambit_log_skip_cb skip_cb, ambit_log_push_cb push_cb, ambit_log_progress_cb progress_cb, void *userref)
+                                         ambit_log_skip_cb skip_cb, ambit_log_push_cb push_cb, ambit_log_progress_cb progress_cb, void *userref,enum ambit3_fw_gen fw_gen)
 {
     ambit3_log_header_t log_header;
     ambit_log_entry_t *log_entry;
@@ -392,11 +386,19 @@ static int process_log_read_replies_gen2(ambit_object_t *object, libambit_sbem01
 
     log_header.header.activity_name = NULL;
 
-    while (libambit_sbem0102_data_next(reply_data_object) == 0) {
+    while (libambit_sbem0102_data_next(reply_data_object, fw_gen) == 0) {
         switch (libambit_sbem0102_data_id(reply_data_object)) {
+          case 0x59:
+            if(fw_gen == AMBIT3_FW_GEN3) log_entries_total = read16(libambit_sbem0102_data_ptr(reply_data_object), 0);
+            break;
           case 0x5a:
-            log_entries_total = read16(libambit_sbem0102_data_ptr(reply_data_object), 0);
-            LOG_INFO("Number of logs=%d", log_entries_total);
+            if(fw_gen == AMBIT3_FW_GEN3) {
+                log_entries_notsynced = read16(libambit_sbem0102_data_ptr(reply_data_object), 0);
+                LOG_INFO("Number of logs marked as not synchronized=%d", log_entries_notsynced);
+            } else {
+                log_entries_total = read16(libambit_sbem0102_data_ptr(reply_data_object), 0);
+                LOG_INFO("Number of logs=%d", log_entries_total);
+            }
             break;
           case 0x5b:
             log_entries_notsynced = read16(libambit_sbem0102_data_ptr(reply_data_object), 0);
@@ -404,7 +406,7 @@ static int process_log_read_replies_gen2(ambit_object_t *object, libambit_sbem01
             break;
           case 0x8a:
           case 0x7a:
-            if (parse_log_header(reply_data_object, &log_header) == 0) {
+            if (parse_log_header(reply_data_object, &log_header, fw_gen) == 0) {
                 LOG_INFO("Log header parsed successfully");
                 if (!skip_cb || skip_cb(userref, &log_header.header) != 0) {
                     LOG_INFO("Reading data of log %d of %d", log_entries_walked + 1, log_entries_total);
@@ -454,12 +456,12 @@ static int log_read(ambit_object_t *object, ambit_log_skip_cb skip_cb, ambit_log
 {
     int entries_read;
     libambit_sbem0102_data_t send_data_object, reply_data_object;
-
     LOG_INFO("Reading log headers");
 
+    enum ambit3_fw_gen fw_gen = get_ambit3_fw_gen(&object->device_info);
     libambit_sbem0102_data_init(&reply_data_object);
 
-    switch (get_ambit3_fw_gen(&object->device_info)) {
+    switch (fw_gen) {
       case AMBIT3_FW_GEN1:
         init_log_read_send_data_object_gen1(&send_data_object);
         break;
@@ -483,13 +485,13 @@ static int log_read(ambit_object_t *object, ambit_log_skip_cb skip_cb, ambit_log
     // Initialize PMEM20 log before starting to read logs
     libambit_pmem20_log_init(&object->driver_data->pmem20, object->driver_data->memory_maps.excercise_log.start, object->driver_data->memory_maps.excercise_log.size);
 
-    switch (get_ambit3_fw_gen(&object->device_info)) {
+    switch (fw_gen) {
       case AMBIT3_FW_GEN1:
         entries_read = process_log_read_replies_gen1(object, &reply_data_object, skip_cb, push_cb, progress_cb, userref);
         break;
       case AMBIT3_FW_GEN2:
       case AMBIT3_FW_GEN3:
-        entries_read = process_log_read_replies_gen2(object, &reply_data_object, skip_cb, push_cb, progress_cb, userref);
+        entries_read = process_log_read_replies_gen2(object, &reply_data_object, skip_cb, push_cb, progress_cb, userref, fw_gen);
         break;
     }
 
@@ -555,7 +557,7 @@ static int gps_orbit_write(ambit_object_t *object, uint8_t *data, size_t datalen
     return ret;
 }
 
-static int parse_log_header(libambit_sbem0102_data_t *reply_data_object, ambit3_log_header_t *log_header)
+static int parse_log_header(libambit_sbem0102_data_t *reply_data_object, ambit3_log_header_t *log_header, enum ambit3_fw_gen fw_gen)
 {
     uint8_t log_type;
     struct tm tm;
@@ -572,7 +574,10 @@ static int parse_log_header(libambit_sbem0102_data_t *reply_data_object, ambit3_
       case 0x7a: /* gen2 fw */
         data += 14;
         break;
-      case 0x8a: /* gen2 fw */
+      case 0xe1: /* gen3 fw */
+        data += 19;
+        break;
+      case 0x8a: /* gen2+gen3 fw */
         data += 4;
         break;
     }
@@ -651,8 +656,9 @@ static int get_memory_maps(ambit_object_t *object)
     uint8_t mm_entry_data_id;
     memory_map_entry_t *mm_entry;
     const uint8_t *ptr;
+    enum ambit3_fw_gen fw_gen = get_ambit3_fw_gen(&object->device_info);
 
-    switch (get_ambit3_fw_gen(&object->device_info)) {
+    switch (fw_gen) {
       case AMBIT3_FW_GEN1:
         legacy_format = 2;
         break;
@@ -677,7 +683,7 @@ static int get_memory_maps(ambit_object_t *object)
         return -1;
     }
 
-    switch (get_ambit3_fw_gen(&object->device_info)) {
+    switch (fw_gen) {
       case AMBIT3_FW_GEN1:
         mm_entry_data_id = 0x3f;
         break;
@@ -688,7 +694,7 @@ static int get_memory_maps(ambit_object_t *object)
         mm_entry_data_id = 0x4a;
         break;
     }
-    while (libambit_sbem0102_data_next(&reply_data_object) == 0) {
+    while (libambit_sbem0102_data_next(&reply_data_object, fw_gen) == 0) {
         if (libambit_sbem0102_data_id(&reply_data_object) == mm_entry_data_id) {
             ptr = libambit_sbem0102_data_ptr(&reply_data_object);
             LOG_INFO("Memory map entry \"%s\"", ptr);
