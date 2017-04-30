@@ -177,7 +177,7 @@ static int personal_settings_get(ambit_object_t *object, ambit_personal_settings
 
     LOG_INFO("Reading personal settings");
 
-
+    /*
     switch (get_ambit3_fw_gen(&object->device_info)) {
       case AMBIT3_FW_GEN3:
             if (libambit_protocol_command(object, ambit_command_unknown3, send_data_unknown, sizeof(send_data_unknown), &reply_data, &replylen, 0) != 0 || replylen < 4) {
@@ -190,6 +190,7 @@ static int personal_settings_get(ambit_object_t *object, ambit_personal_settings
       case AMBIT3_FW_GEN2:
         break;
     }
+    */
 
     libambit_sbem0102_data_init(&reply_data_object);
     if (libambit_sbem0102_command_request_raw(&object->driver_data->sbem0102, ambit_command_ambit3_settings, send_data, sizeof(send_data), &reply_data_object) != 0) {
