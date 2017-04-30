@@ -430,6 +430,11 @@ static int process_log_read_replies_gen2(ambit_object_t *object, libambit_sbem01
                 LOG_INFO("Failed to parse log header");
             }
             log_entries_walked++;
+
+            if(log_entries_walked > log_entries_total) {
+                log_entries_total = log_entries_walked; // Handle situations where ambit reports wrong number of total entries
+            }
+
             if (progress_cb != NULL) {
                 LOG_INFO("Do progress_cb");
                 progress_cb(userref, log_entries_total, log_entries_walked, 100*log_entries_walked/log_entries_total);
