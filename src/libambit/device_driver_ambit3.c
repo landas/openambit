@@ -645,6 +645,14 @@ static int parse_log_header(libambit_sbem0102_data_t *reply_data_object, ambit3_
     log_header->header.distance = read32inc(data, &offset);
     log_header->header.energy_consumption = read16inc(data, &offset);
 
+    if(fw_gen == AMBIT3_FW_GEN3) {
+        //I need to hack a delimiter into a const *data
+        
+        uint8_t *tmp = (uint8_t*)data;
+        *(tmp+offset+9) = 0x1e;
+        *(tmp+offset+10) = 0x2a;
+    }
+
     return 0;
 }
 
