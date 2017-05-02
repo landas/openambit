@@ -92,16 +92,21 @@ static inline uint32_t read32inc(const uint8_t *buf, size_t *offset)
     return (buf[(*offset)-4] | (buf[(*offset)-3] << 8) | (buf[(*offset)-2] << 16) | (buf[(*offset)-1] << 24));
 }
 
-static inline uint8_t *find_sequence(uint8_t *buf, size_t size, const uint8_t *seq, size_t seq_len)
+static inline uint8_t *find_sequence(uint8_t *buf, size_t size, const uint8_t *seq, size_t seq_len, const uint8_t *seq2, size_t seq2_len)
 {
     size_t i = 0;
 
     while (1) {
-        if (i - size < seq_len)
+        if (i - size < seq_len || i - size < seq2_len)
            return NULL;
 
         if (memcmp((char *) buf + i, (const char *) seq, seq_len) == 0)
             return buf + i;
+
+        if(seq_len>0) {
+            if (memcmp((char *) buf + i, (const char *) seq2, seq2_len) == 0)
+                return buf + i;
+        }
 
         i++;
     }

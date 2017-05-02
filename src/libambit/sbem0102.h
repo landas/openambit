@@ -166,6 +166,7 @@ static inline int libambit_sbem0102_data_next(libambit_sbem0102_data_t *object, 
 {
     size_t read_offset;
     uint8_t log_end[] = { 0, 0, 0, 0, 0x7a, 0x44 };
+    uint8_t log_start[] = { 0, 0x8a, 0xff };
     uint8_t *data;
 
     if(fw_gen == AMBIT3_FW_GEN3) {
@@ -189,7 +190,7 @@ static inline int libambit_sbem0102_data_next(libambit_sbem0102_data_t *object, 
       case 0xe1:
         read_offset = (size_t) (object->read_ptr - object->data);
         data = find_sequence(object->read_ptr, object->size - read_offset,
-                             log_end, ARRAY_LENGTH(log_end));
+                             log_end, ARRAY_LENGTH(log_end), log_start, AMBIT3_FW_GEN3 == fw_gen ? ARRAY_LENGTH(log_start) : 0);
         if (data) {
             object->read_ptr = data + 4;
             return 0;
