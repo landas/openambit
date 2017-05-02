@@ -186,6 +186,7 @@ static inline int libambit_sbem0102_data_next(libambit_sbem0102_data_t *object, 
     switch (object->read_ptr[0]) {
       case 0x7a:
       case 0x8a:
+      case 0xe1:
         read_offset = (size_t) (object->read_ptr - object->data);
         data = find_sequence(object->read_ptr, object->size - read_offset,
                              log_end, ARRAY_LENGTH(log_end));
