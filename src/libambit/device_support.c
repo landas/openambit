@@ -21,6 +21,7 @@
  */
 #include "device_support.h"
 #include "device_driver.h"
+#include "debug.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -82,6 +83,8 @@ const ambit_known_device_t *libambit_device_support_find(uint16_t vendor_id, uin
 {
     ambit_known_device_t *device = NULL;
     int i;
+
+    LOG_INFO("Vendor id: %d, product id: %d, model %s, fw_version: %d.%d.%d", vendor_id, product_id, model, fw_version[0], fw_version[1], fw_version[2]);
 
     for (i=0; i<sizeof(known_devices)/sizeof(known_devices[0]); i++) {
         if (vendor_id == known_devices[i].vid &&
