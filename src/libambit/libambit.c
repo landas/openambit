@@ -555,6 +555,7 @@ static int device_info_get(ambit_object_t *object, ambit_device_info_t *info)
     if (libambit_protocol_command(object, ambit_command_device_info, komposti_version, sizeof(uint8_t)*4, &reply_data, &replylen, 1) == 0) {
         if (info != NULL) {
             const char *p = (char *)reply_data;
+            LOG_INFO("Device info length: %d", replylen);
 
             info->model  = utf8memconv(p, LIBAMBIT_MODEL_LENGTH, NULL);
             p += LIBAMBIT_MODEL_LENGTH;
