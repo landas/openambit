@@ -621,6 +621,8 @@ static ambit_device_info_t * ambit_device_info_new(const struct hid_device_info 
 
     hid_device *hid;
 
+    LOG_INFO("Read device info");
+
     if (!dev || !dev->path) {
         LOG_ERROR("internal error: expecting hidraw device");
         return NULL;
@@ -643,6 +645,8 @@ static ambit_device_info_t * ambit_device_info_new(const struct hid_device_info 
         free ((char *) dev_path);
         return NULL;
     }
+
+    LOG_INFO("Keep reading device info");
 
     device->path = dev_path;
     device->vendor_id  = vid;
@@ -717,6 +721,8 @@ static ambit_device_info_t * ambit_device_info_new(const struct hid_device_info 
                         device->name = name;
                     }
                 }
+            } else {
+                LOG_WARNING("Could not read known devices");
             }
 
 #ifdef DEBUG_PRINT_INFO

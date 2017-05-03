@@ -11,6 +11,7 @@ SingleApplication::SingleApplication(int &argc, char *argv[], const QString uniq
     {
         _isRunning = false;
         // create shared memory.
+        return;
         if (!sharedMemory.create(1))
         {
             qDebug() << "Unable to create single instance.";
