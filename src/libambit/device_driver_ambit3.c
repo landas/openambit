@@ -112,7 +112,7 @@ static enum ambit3_fw_gen get_ambit3_fw_gen(ambit_device_info_t *device_info)
         uint8_t fw_version[4];
         enum ambit3_fw_gen gen;
     } generations[] = {
-        {{2, 4, 1, 0}, AMBIT3_FW_GEN3},
+        {{2, 2, 0, 0}, AMBIT3_FW_GEN3},
         {{2, 0, 4, 0}, AMBIT3_FW_GEN2},
         {{0, 0, 0, 0}, AMBIT3_FW_GEN1},
     };
